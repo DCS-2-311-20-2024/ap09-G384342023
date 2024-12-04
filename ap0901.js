@@ -8,6 +8,8 @@
 import * as THREE from "three";
 import { GUI } from "ili-gui";
 
+let stepsA_B,gymBokaB,micro;
+
 // ３Ｄページ作成関数の定義
 function init() {
   // 制御変数の定義
@@ -30,8 +32,8 @@ function init() {
   const camera = new THREE.PerspectiveCamera(
     50, window.innerWidth/window.innerHeight, 0.1, 1000);
   //俯瞰
-  camera.position.set(0,10,0);
-  camera.lookAt(5,5,-30);
+  camera.position.set(0,200,0);
+  camera.lookAt(0,0,0);
   //bli1.2
   //camera.position.set(50,0,-120);
   //camera.lookAt(0,0,-38);
@@ -55,7 +57,7 @@ function init() {
   renderer.setSize(window.innerWidth, innerHeight);
   renderer.setClearColor(0xeeeeee); 
   document.getElementById("output").appendChild(renderer.domElement);
-
+  
   // 描画処理
   // テクスチャの読み込み
   const map1 = new THREE.Group();
@@ -66,42 +68,115 @@ function init() {
     new THREE.MeshLambertMaterial({map:texture})
   );
   plane.rotateX(-Math.PI/2);
-  map1.add(plane);
+  //map1.add(plane);
   //建物
-  const buildmaterial = new THREE.MeshLambertMaterial({color:'red'});
-  const bil1 = new THREE.Mesh(
+  const buildmaterial = new THREE.MeshLambertMaterial({color:0x111111});
+//A舘地面
+{
+  const Aground = new THREE.Group();
+  const A1 = new THREE.Mesh(
+    new THREE.BoxGeometry(14,20,80),
+    new THREE.MeshLambertMaterial({color:0xeeeeee})
+  )
+  A1.position.set(-40,10,32.5)
+  A1.rotation.y = -Math.PI/10;
+  Aground.add(A1);
+  const A2 = new THREE.Mesh(
+    new THREE.BoxGeometry(6,10,30),
+    new THREE.MeshLambertMaterial({color:0xeeeeee})
+  )
+  A2.position.set(-42,25,50)
+  A2.rotation.y = -Math.PI/10;
+  Aground.add(A2);
+  map1.add(Aground)
+
+  
+}
+//地面  体育館らへん
+{
+  const A_B = new THREE.Mesh(
+    new THREE.BoxGeometry(28,10,70),
+    new THREE.MeshLambertMaterial({color:0xeeeeee})
+  );
+  A_B.position.set(-11,5,-36.5)
+  A_B.rotation.y = -Math.PI/10;
+  map1.add(A_B);
+}
+//岡体育館Bぐらい
+{
+  gymBokaB = new THREE.Group();
+  const gymBokaB1 = new THREE.Mesh(
+    new THREE.BoxGeometry(5,10,25),
+    new THREE.MeshLambertMaterial({color:0xeeeeee})
+  );
+  gymBokaB1.position.set(9.65,4.5,-44.5);
+  gymBokaB1.rotation.y = Math.PI/1.1;
+  gymBokaB1.rotation.z = Math.PI/1.1;
+  gymBokaB.add(gymBokaB1);
+  const gymBokaB2 = new THREE.Mesh(
+    new THREE.BoxGeometry(5,10,25),
+    new THREE.MeshLambertMaterial({color:0xeeeeee})
+  );
+  gymBokaB2.position.set(8,5,-45);
+  gymBokaB2.rotation.y = Math.PI/1.1;
+  gymBokaB.add(gymBokaB2);
+  scene.add(gymBokaB);
+}
+//岡体育館Aぐらい
+{
+  const gymBokaA = gymBokaB.clone(true);
+  gymBokaA.traverse((child) => {
+    if (child.isMesh) {
+      child.material = child.material.clone(); 
+      child.geometry = child.geometry.clone(); 
+    }
+  });
+  gymBokaA.position.set(-9.5,0.5,29.5)
+  gymBokaA.rotation.y = 0.01
+  scene.add(gymBokaA);
+}
+//soko
+{
+  const soko = new THREE.Mesh(
     new THREE.BoxGeometry(8,10,8),buildmaterial
   )
-  bil1.position.set(5,15,-57);
-  bil1.rotation.y = -Math.PI/9
-  map1.add(bil1);
-
-  const bil2 = new THREE.Mesh(
+  soko.position.set(5,15,-57);
+  soko.rotation.y = -Math.PI/9
+  map1.add(soko);
+}
+//gymB
+{
+  const gymB = new THREE.Mesh(
     new THREE.BoxGeometry(15,30,10),buildmaterial
   )
-  bil2.position.set(-2,25,-46);
-  bil2.rotation.y = -Math.PI/10
-  map1.add(bil2);
-  const bil2_2 = new THREE.Mesh(
+  gymB.position.set(-2,25,-46);
+  gymB.rotation.y = -Math.PI/10
+  map1.add(gymB);
+  const gymB_2 = new THREE.Mesh(
     new THREE.BoxGeometry(20,30,7),buildmaterial
   )
-  bil2_2.position.set(-6.6,25,-40);
-  bil2_2.rotation.y = -Math.PI/11
-  map1.add(bil2_2);
-  const bil3 = new THREE.Mesh(
+  gymB_2.position.set(-6.6,25,-40);
+  gymB_2.rotation.y = -Math.PI/11
+  map1.add(gymB_2);
+}
+//gymA
+{
+  const gymA = new THREE.Mesh(
     new THREE.BoxGeometry(24,40,19),buildmaterial
   )
-  bil3.position.set(-14.5,30,-23);
-  bil3.rotation.y = -Math.PI/10
-  map1.add(bil3);
-  const bil3_2 = new THREE.Mesh(
+  gymA.position.set(-14.5,30,-23);
+  gymA.rotation.y = -Math.PI/10
+  map1.add(gymA);
+  const gymA_2 = new THREE.Mesh(
     new THREE.BoxGeometry(2,5,4),buildmaterial
   )
-  bil3_2.position.set(-7.5,12.5,-9);
-  bil3_2.rotation.y = -Math.PI/10
-  map1.add(bil3_2);
+  gymA_2.position.set(-7.5,12.5,-9);
+  gymA_2.rotation.y = -Math.PI/10
+  map1.add(gymA_2);
+
   //階段作るy20->10大きさ(x=4,y=10,z=2)
-  const bil3_3 = new THREE.Group();
+  const gymA_3 = new THREE.Group();
+  {
   for (let i = 0; i < 4; i++) {
     const stepHeight = 5 / 4;
     const stepDepth = 1;
@@ -113,36 +188,22 @@ function init() {
         (i * stepHeight) + stepHeight / 2,
         (i * stepDepth)
     );
-    bil3_3.add(step);
+    gymA_3.add(step);
   }
-  bil3_3.position.set(-12,10,-8.38);
-  bil3_3.rotation.y = Math.PI/2.5
-  map1.add(bil3_3);
-  //地面体育館らへん
-  const A_B = new THREE.Mesh(
-    new THREE.BoxGeometry(24,10,55),
-    new THREE.MeshLambertMaterial({color:0xeeeeee})
-  );
-  A_B.position.set(-11,5,-34)
-  A_B.rotation.y = -Math.PI/10;
-  map1.add(A_B);
-  //岡体育館Bぐらい
-  const gymBoka = new THREE.Mesh(
-    new THREE.CylinderGeometry(5,5,25,12,12),
-    new THREE.MeshLambertMaterial({color:0x892f1b})
-  );
-  gymBoka.rotation.x = Math.PI/2;
-  gymBoka.rotation.z = Math.PI/10;
-  gymBoka.position.set(5,5,-45)
-  map1.add(gymBoka);
-  //体育館AとBの間の階段
-  const stepsA_B = new THREE.Group();
-  for (let i = 0; i < 5; i++) {
+  gymA_3.position.set(-12,10,-8.38);
+  gymA_3.rotation.y = Math.PI/2.5
+  map1.add(gymA_3);
+}
+}
+//体育館AとBの間の階段
+{
+  stepsA_B = new THREE.Group();
+  for (let i = 0; i < 8; i++) {
     const stepHeight = 5/4;
     const stepDepth = 1;
     const stepWidth = 6;
     const stepGeometry = new THREE.BoxGeometry(stepWidth, stepHeight, stepDepth);
-    const step = new THREE.Mesh(stepGeometry, buildmaterial);    
+    const step = new THREE.Mesh(stepGeometry, new THREE.MeshLambertMaterial({color:0xeeeeee}));    
     step.position.set(
         1,
         (i * stepHeight) + stepHeight / 2,
@@ -150,9 +211,108 @@ function init() {
     );
     stepsA_B.add(step);
   }
-  stepsA_B.position.set(5,3.8,-30);
+  stepsA_B.position.set(8,0.05,-30);
   stepsA_B.rotation.y = -Math.PI/1.7
   scene.add(stepsA_B);
+}
+//体育館A横の階段
+{
+  const Asteps = stepsA_B.clone(true); 
+  Asteps.traverse((child) => {
+    if (child.isMesh) {
+      child.material = child.material.clone(); 
+      child.geometry = child.geometry.clone(); 
+    }
+  });
+
+  Asteps.position.set(-1.5,0,-0.3);
+  Asteps.rotation.y=-Math.PI/2.5
+  map1.add(Asteps);
+}
+//体育館とA舘の階段
+{
+  const A_Asteps = stepsA_B.clone(true);
+  A_Asteps.traverse((child) => {
+    if (child.isMesh) {
+      child.material = child.material.clone(); 
+      child.geometry = child.geometry.clone(); 
+    }
+  });
+  A_Asteps.position.set(-24,10,-12.01);
+  A_Asteps.rotation.y=Math.PI/0.909
+  map1.add(A_Asteps);
+}
+//りたく館
+{
+  const ritaku = new THREE.Mesh(
+    new THREE.BoxGeometry(6,50,12),
+    buildmaterial
+  )
+  ritaku.position.set(-30,35,-8);
+  ritaku.rotation.y=-Math.PI/10
+  map1.add(ritaku);
+
+
+}
+//A舘
+{
+  const A = new THREE.Group();
+  const A1 = new THREE.Mesh(
+    new THREE.BoxGeometry(6,40,55),
+    buildmaterial
+  )
+  A1.position.set(-42,40,30)
+  A1.rotation.y = -Math.PI/10;
+  A.add(A1);
+  const A2 = new THREE.Mesh(
+    new THREE.BoxGeometry(3,1,9),
+    buildmaterial
+  )
+  A2.position.set(-37.7,30,31.7)
+  A2.rotation.y = -Math.PI/10
+  A.add(A2)
+  map1.add(A);
+}
+//マイクロ
+{
+  micro = new THREE.Mesh(
+    new THREE.BoxGeometry(14,24,24),
+    buildmaterial
+  )
+  micro.position.set(-18,12,13)
+  micro.rotation.y = -Math.PI/10;
+  map1.add(micro);
+}
+//A舘とC舘階段
+{
+  const stepsA_C = new THREE.Group();
+  for (let i = 0; i < 8; i++) {
+    const stepHeight = 5/4;
+    const stepDepth = 1;
+    const stepWidth = 3;
+    const stepGeometry = new THREE.BoxGeometry(stepWidth, stepHeight, stepDepth);
+    const step = new THREE.Mesh(stepGeometry, new THREE.MeshLambertMaterial({color:0xeeeeee}));    
+    step.position.set(
+        1,
+        (i * stepHeight) + stepHeight / 2,
+        (i * stepDepth)
+    );
+    stepsA_C.add(step);
+  }
+  stepsA_C.position.set(-34.5,20,29);
+  stepsA_C.rotation.y = -Math.PI/10
+  scene.add(stepsA_C);
+}
+//C舘
+{
+  const C = micro.clone();
+  C.position.set(-35,18,62)
+  C.scale.y = 1.5
+  map1.add(C);
+}
+
+
+
 
 
 
