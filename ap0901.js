@@ -32,7 +32,7 @@ function init() {
   const camera = new THREE.PerspectiveCamera(
     50, window.innerWidth/window.innerHeight, 0.1, 1000);
   //俯瞰
-  camera.position.set(0,250,0);
+  camera.position.set(0,200,0);
   camera.lookAt(0,0,0);
 
 
@@ -286,6 +286,7 @@ function init() {
 //道
   const controlPoints1 = [
     [22, 1, -57],
+    [1.7,0,2],
     [-25, 1, 80]
   ];
   const course1 = new THREE.CatmullRomCurve3(
@@ -303,9 +304,31 @@ function init() {
     controlPoints2.map((p) => new THREE.Vector3().set(p[0], p[1], p[2])),
     false
   );
+  const controlPoints3 = [
+    [22, 0, -57],
+    [1.7,0,2],
+    [-8.5,8,-1.5],
+    [-19,8,-6],
+    [-18,8,-11],
+    [-22,8,-14],
+    [-25,18,-4.5],
+    [-33,18,28],
+    [-36,28,36],
+    [-43,28,60]
+  ]
+  const course3 = new THREE.CatmullRomCurve3(
+    controlPoints3.map((p) => new THREE.Vector3().set(p[0], p[1], p[2])),
+    false
+  );
+  const origin = new THREE.Mesh(
+    new THREE.BoxGeometry(1,10,1),
+    new THREE.MeshLambertMaterial({color:'red'})
+  )
+  origin.position.set(-43,50,60);
+  //scene.add(origin)
 
   function drawRoad(course, color, width) {
-    const points = course.getPoints(100);
+    const points = course.getPoints(1000);
     points.forEach((point) => {
         const road = new THREE.Mesh(
             new THREE.CircleGeometry(width, 16),
@@ -319,6 +342,7 @@ function init() {
 
   drawRoad(course1, "gray", 3);
   drawRoad(course2, "brown", 4);
+  drawRoad(course3, '0x0000000',1)
 //人オブジェクト
   function creatapeople(){
     const people = new THREE.Group();
@@ -333,13 +357,18 @@ function init() {
     )
     body.position.set(0,3,0);
     people.add(body)
+    const leftleggroup = new THREE.Group();
     const leftleg = new THREE.Mesh(
       new THREE.CylinderGeometry(0.2,0.2,3,16),peoplematelal    
     )
-    leftleg.position.set(-0.5,1,0)
-    people.add(leftleg);
-    const rightleg = leftleg.clone();
-    rightleg.position.x = 0.5
+    leftleg.position.set(0.-1,0);
+    leftleggroup.add(leftleg);
+    leftleggroup.position.set(0.4,0.5,0)
+    leftleggroup.rotation.z = -Math.PI/20;
+    people.add(leftleggroup);
+    const rightleg = leftleggroup.clone();
+    rightleg.position.set(1.5,0.75,0)
+    rightleg.rotation.z = Math.PI/20
     people.add(rightleg);
     const leftarmgroup = new THREE.Group();
     const leftarm = new THREE.Mesh(
@@ -355,59 +384,62 @@ function init() {
     rightarm.position.set(0.2, 4, 0);
     rightarm.rotation.z = Math.PI/10
     people.add(rightarm)
+    people.position.y = 2;
     
     return{people,head,body,leftarm,leftleg,rightarm,rightleg};
   }
 //人歩くモーション作成
-  function createPeopleGroup(num) {
-    const peopleGroup = [];
-    for (let i = 0; i < num; i++) {
-      const { people: human, head, body, leftarm, leftleg, rightarm, rightleg } = creatapeople();
-      human.position.set(
-        Math.random() * 50 - 25, 
-        0,
-        Math.random() * 50 - 25 
-      );
-      peopleGroup[i] = human; 
-      scene.add(human);
-    }
-    return peopleGroup;
+const courses = [course1, course3];
+
+function createPeopleGroupWithCourses(numPeople, courses) {
+  const peopleGroup = [];
+  const assignments = [];
+
+  for (let i = 0; i < numPeople; i++) {
+    const { people: human, head, body, leftarm, leftleg, rightarm, rightleg } = creatapeople();
+    human.position.set(
+      Math.random() * 50 - 25,
+      0,
+      Math.random() * 50 - 25 
+    );
+
+    
+    const assignedCourse = courses[Math.floor(Math.random() * courses.length)];
+    assignments.push({ human, course: assignedCourse });
+
+   
+    scene.add(human);
+    peopleGroup.push(human);
   }
-  const peopleGroup = createPeopleGroup(10);
+
+  return { peopleGroup, assignments };
+}
+
+const { peopleGroup, assignments } = createPeopleGroupWithCourses(20, courses);
+
+function animatePeopleWithCourses(assignments) {
   const clock = new THREE.Clock();
-  const peopleposition = new THREE.Vector3();
-  function animatePeople(peopleGroup, course) {
-    function animate() {
-      requestAnimationFrame(animate);
-      const time = clock.getElapsedTime();
-  
-      peopleGroup.forEach((human, index) => {
-        const speed = (time / 30 + index * 0.1) % 1; 
-        const position = new THREE.Vector3();
-        course.getPointAt(speed, position); 
-        human.position.copy(position);
-  
-        
-        human.children[1].position.y = 3 + Math.abs(Math.sin(time * 4)) * 0.2; // 体上下動
-        human.children[2].rotation.x = Math.sin(time * 4) * 0.5; 
-        human.children[3].rotation.x = -Math.sin(time * 4) * 0.5; 
-        human.children[4].rotation.x = -Math.sin(time * 4) * 0.5; 
-        human.children[5].rotation.x = Math.sin(time * 4) * 0.5; 
-      });
-    }
-    animate();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const time = clock.getElapsedTime();
+    assignments.forEach(({ human, course }, index) => {
+      const speed = (time / 30 + index * 0.1) % 1;
+      const position = new THREE.Vector3();
+      course.getPointAt(speed, position);
+      human.position.copy(position);
+
+      human.children[1].position.y = 3 + Math.abs(Math.sin(time * 4)) * 0.2; 
+      human.children[2].rotation.x = Math.sin(time * 4) * 0.5; 
+      human.children[3].rotation.x = -Math.sin(time * 4) * 0.5;
+      human.children[4].rotation.x = -Math.sin(time * 4) * 0.5;
+      human.children[5].rotation.x = Math.sin(time * 4) * 0.5; 
+    });
   }
-  animatePeople(peopleGroup, course1);
 
-
-
-
-
-
-//camera.position.set(10,40,40)
-//camera.lookAt(-5,-25,59)
-
-
+  animate();
+}
+animatePeopleWithCourses(assignments);
 
   scene.add(map1);
   // 描画関数
