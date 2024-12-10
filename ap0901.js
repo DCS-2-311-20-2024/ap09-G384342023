@@ -345,7 +345,7 @@ function init() {
   const controlPoints4 = [
     [60, 1, 12],
     [30, 1, 10],
-    [0, 1, 10],
+    [2, 1, 10],
     [10, 1, 0],
     [30, 1, 10]
   ]
@@ -362,6 +362,25 @@ function init() {
     controlPoints5.map((p) => new THREE.Vector3().set(p[0], p[1], p[2])),
     false
   );
+  const controlPoints6 = [
+    [60, 1, 14],
+    [30, 1, 12],
+    [4, 1, 10],
+    [10, 1, 0],
+    [23, 1, 3],
+    [30, 1, 9],
+    [60, 1, 10]
+  ]
+  const course6 = new THREE.CatmullRomCurve3(
+    controlPoints6.map((p) => new THREE.Vector3().set(p[0], p[1], p[2])),
+    false
+  );
+  const f = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 13, 1),
+    new THREE.MeshBasicMaterial({ color: 0x000000 })
+  )
+  f.position.set(30, 1, 9);
+  //scene.add(f);
   function drawRoad(course, color, width, visible) {
     const points = course.getPoints(1000);
     points.forEach((point) => {
@@ -377,10 +396,10 @@ function init() {
   }
 
   drawRoad(course1, "gray", 3, false);
-  //drawRoad(course2, '0x666666', 4, true);
   drawRoad(course3, '0x0000000', 1, false)
-  drawRoad(course4, "gray", 3, true);
+  drawRoad(course4, "gray", 4, true);
   drawRoad(course5, "gray", 5, true);
+  drawRoad(course6, '0x0000000', 1, false)
 
   //人オブジェクト
   function creatapeople() { //人模型を作るメソッド
@@ -434,6 +453,33 @@ function init() {
 
     return { people, head, body, leftarm, leftleg, rightarm, rightleg, front };
   }
+  //バス
+  const bus = new THREE.Group();
+  const center = new THREE.Mesh(
+    new THREE.BoxGeometry(3.6, 5, 7),
+    new THREE.MeshLambertMaterial({ color: 0xffffff })
+  )
+  center.position.y = 5;
+  bus.add(center);
+  const tyre1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(1, 1, 0.5),
+    new THREE.MeshLambertMaterial({ color: 0x000000 })
+  )
+  tyre1.rotation.x = Math.PI / 2
+  tyre1.position.set(1.5, 2.5, -2.25);
+  bus.add(tyre1)
+  const tyre2 = tyre1.clone();
+  tyre2.position.z = 2.25
+  bus.add(tyre2)
+  const tyre3 = tyre1.clone();
+  tyre3.position.x = -1.5;
+  bus.add(tyre3)
+  const tyre4 = tyre1.clone();
+  tyre4.position.set(-1.5, 2.5, 2.25)
+  bus.add(tyre4);
+  bus.position.x = 5
+  bus.rotation.y = Math.PI / 2;
+  scene.add(bus);
   //アニメーション
   const courses = [course1, course3]; //人が動くコースを登録
 
@@ -447,7 +493,7 @@ function init() {
         Math.random() * 50 - 25,
         1,
         Math.random() * 50 - 25
-      );  //初期位置を選択
+      );  //初期位置をランダムに選択
 
 
       const assignedcourse = courses[Math.floor(Math.random() * courses.length)];  //コースを選択
@@ -469,6 +515,8 @@ function init() {
   const clock = new THREE.Clock();
   const position = new THREE.Vector3();
   const target = new THREE.Vector3();
+  const busposition = new THREE.Vector3();
+  const bustarget = new THREE.Vector3();
   function animetionhuman(assignments) {
     function animate() {
       const time = clock.getElapsedTime();
@@ -486,15 +534,21 @@ function init() {
         human.children[4].rotation.x = -Math.sin(time * 4) * 0.5;  //右手・・・
         human.children[5].rotation.x = Math.sin(time * 4) * 0.5;  //右足・・・
       });
+      course6.getPointAt((time / 30) % 1, busposition);
+      bus.position.copy(busposition);
+      course6.getPointAt((time / 30 + 0.001) % 1, bustarget);
+      bus.lookAt(bustarget);
+
+
     }
 
     animate();
   }
   function embedcamera(assignments) {
     const { human } = assignments[0];  //assignmentからhumanをもらう
-    const head = human.children[1];  //頭の情報を登録
+    const head = human.children[1];
     head.add(camera1);  //camera1を頭の子要素にする
-    const front = human.children[6];  //正面の情報を登録
+    const front = human.children[6];
     const worldposition = front.getWorldPosition(new THREE.Vector3());  //ワールド座標を獲得
     camera1.position.set(0, 2, -1.1)  //camera1を頭に埋め込む
     human.visible = false;  //カメラのはじにに映る残骸を消す
